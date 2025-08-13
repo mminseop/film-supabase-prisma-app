@@ -3,7 +3,12 @@ import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { useCommentStore, useLikeStore, useModalStore, usePostStore } from "../store";
+import {
+  useCommentStore,
+  useLikeStore,
+  useModalStore,
+  usePostStore,
+} from "../store";
 import {
   Box,
   Card,
@@ -15,6 +20,8 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import Comment from "./Comment";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const style = {
   position: "absolute",
@@ -35,19 +42,47 @@ export default function FilmPostModal() {
   const { count, isLiked, like, unlike, getIsLiked, getCount } = useLikeStore();
   const { comments, getComments, createComment } = useCommentStore();
   const { post_id } = currentPost;
-  const [comment, setComment] = useState('');
-  
+  const [comment, setComment] = useState("");
+
   const handleClose = () => {
     empty();
     closeModal();
   };
   const handleLike = () => {
     isLiked ? unlike(post_id, CUSTOMER_ID) : like(post_id, CUSTOMER_ID);
-  } 
-  const handleSubmitComment = (comment) => {
-    createComment(post_id, CUSTOMER_ID, comment)
-    getComments(post_id, 10, 1)
-  }
+  };
+
+  //   const handleSubmitComment = (comment) => {
+  //     createComment(post_id, CUSTOMER_ID, comment);
+  //     getComments(post_id, 10, 1);
+  //   };
+  const handleSubmitComment = async (comment) => {
+    if (!comment.trim()) return; // 빈 댓글 예외처ㅣㄹ
+
+    try {
+      await createComment(post_id, CUSTOMER_ID, comment);
+      await getComments(post_id, 10, 1);
+      setComment("");
+      toast.success("댓글 등록이 완료되었습니다.");
+    } catch (err) {
+      console.error(err);
+      toast.success("댓글 등록을 실패했습니다.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await axios.delete(
+        `http://localhost:8090/film/post/comment/${commentId}`
+      );
+      await getComments(post_id, 10, 1);
+      toast.success("댓글 삭제가 완료되었습니다.");
+    } catch (err) {
+      console.error(err);
+      toast.success("댓글 삭제를 실패했습니다..");
+    }
+  };
 
   useEffect(() => {
     if (post_id !== 0) {
@@ -86,10 +121,7 @@ export default function FilmPostModal() {
               }}
             >
               <Box display={"flex"} alignItems={"center"}>
-                <Typography
-                  variant="h4"
-                  component="h2"
-                >
+                <Typography variant="h4" component="h2">
                   {currentPost?.film.title}
                 </Typography>
                 <IconButton aria-label="like your post" onClick={handleLike}>
@@ -99,9 +131,7 @@ export default function FilmPostModal() {
                 </IconButton>
                 <Typography>{count}</Typography>
               </Box>
-              <Typography sx={{ mt: 2 }}>
-                {currentPost?.content}
-              </Typography>
+              <Typography sx={{ mt: 2 }}>{currentPost?.content}</Typography>
             </CardContent>
 
             <CardContent
@@ -112,13 +142,15 @@ export default function FilmPostModal() {
                 width: "100%",
               }}
             >
-              <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                textAlign: 'center',
-                justifyContent: 'center',
-                px: 2
-              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  textAlign: "center",
+                  justifyContent: "center",
+                  px: 2,
+                }}
+              >
                 <label htmlFor="">{CUSTOMER_FULL_NAME}</label>
               </Box>
               <TextareaAutosize
@@ -139,7 +171,13 @@ export default function FilmPostModal() {
                 height: "20rem",
               }}
             >
-              {comments.map(e => <Comment key={e.comment_id} comment={e}></Comment>)}
+              {comments.map((e) => (
+                <Comment
+                  key={e.comment_id}
+                  comment={e}
+                  onDelete={handleDeleteComment}
+                ></Comment>
+              ))}
             </CardContent>
           </Card>
         </Fade>

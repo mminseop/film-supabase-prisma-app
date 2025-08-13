@@ -29,3 +29,9 @@ export const commentCreate = async ({ post_id, customer_id, content }) =>
       customer_id,
     },
   });
+
+// 댓글 삭제
+export const commentDelete = async (comment_id) =>
+  prisma.film_comment.delete({
+    where: { comment_id },
+  });
