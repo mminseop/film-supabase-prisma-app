@@ -1,5 +1,5 @@
 import getPageStartEnd from "../../util/getPageStartEnd.mjs";
-import { commentCreate, commentFindMany, commentDelete } from "./model.mjs";
+import { commentCreate, commentFindMany, commentDelete, commentUpdate } from "./model.mjs";
 
 export const getAll = async (req, res) => {
   const limit = req.query.limit || 10;
@@ -46,6 +46,22 @@ export const deleteOne = async (req, res) => {
 
   try {
     const result = await commentDelete(comment_id);
+    return res.status(200).json({ data: result });
+  } catch (e) {
+    return res.status(400).json({ error: e.stack });
+  }
+};
+
+// 댓글 수정
+export const updateOne = async (req, res) => {
+  const comment_id = Number(req.params.commentId);
+  const content = req.body.content;
+
+  if (!comment_id || !content)
+    return res.status(400).json({ error: "Bad Request" });
+
+  try {
+    const result = await commentUpdate(comment_id, content);
     return res.status(200).json({ data: result });
   } catch (e) {
     return res.status(400).json({ error: e.stack });

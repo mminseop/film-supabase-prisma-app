@@ -80,7 +80,21 @@ export default function FilmPostModal() {
       toast.success("댓글 삭제가 완료되었습니다.");
     } catch (err) {
       console.error(err);
-      toast.success("댓글 삭제를 실패했습니다..");
+      toast.success("댓글 삭제를 실패했습니다.");
+    }
+  };
+
+  const handleUpdateComment = async (commentId, newContent) => {
+    if (!newContent.trim()) return;
+    try {
+      await axios.put(`http://localhost:8090/film/post/comment/${commentId}`, {
+        content: newContent,
+      });
+      await getComments(post_id, 10, 1);
+      toast.success("댓글 수정이 완료되었습니다");
+    } catch (err) {
+      console.error(err);
+      toast.error("댓글 수정을 실패했습니다.");
     }
   };
 
@@ -175,7 +189,8 @@ export default function FilmPostModal() {
                 <Comment
                   key={e.comment_id}
                   comment={e}
-                  onDelete={handleDeleteComment}
+                  onDelete={handleDeleteComment} // 삭제
+                  onUpdate={handleUpdateComment} // 수정
                 ></Comment>
               ))}
             </CardContent>

@@ -35,3 +35,10 @@ export const commentDelete = async (comment_id) =>
   prisma.film_comment.delete({
     where: { comment_id },
   });
+
+// 댓글 수정
+export const commentUpdate = async (comment_id, content) =>
+  prisma.film_comment.update({
+    where: { comment_id },
+    data: { content },
+  });
